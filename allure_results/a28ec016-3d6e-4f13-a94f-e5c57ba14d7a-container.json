@@ -1,0 +1,1 @@
+{"uuid": "82dafc36-005a-4cf5-982e-b3bc8fbef4a8", "children": ["3c1711ef-9281-4252-a7e5-f098c2eefbc4"], "befores": [{"name": "wait", "status": "passed", "start": 1789765410063, "stop": 1789765410063}], "afters": [{"name": "wait::<lambda>", "start": 1789765412020}], "start": 1789765410063, "stop": 1789765412020}

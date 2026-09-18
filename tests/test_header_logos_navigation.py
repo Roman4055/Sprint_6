@@ -1,10 +1,10 @@
 # tests/test_header_logos_navigation.py
 import pytest
 import allure
-from selenium.webdriver.support import expected_conditions as EC
-from selenium.webdriver.common.by import By
 from data import Data
-from locators import LocatorsHeader
+from pages.header_page import HeaderPage
+from selenium.webdriver.support import expected_conditions as EC
+from selenium.webdriver.support.wait import WebDriverWait
 
 @allure.feature("Шапка сайта")
 @allure.story("Навигация по логотипам")
@@ -14,38 +14,32 @@ class TestHeaderLogosNavigation:
     def test_click_yandex_logo_redirects_to_yandex(self, driver, wait):
         driver.get(Data.START_URL)
 
-        wait.until(EC.presence_of_element_located(LocatorsHeader.LOGO_SCOOTER))
+        header = HeaderPage(driver)
 
-        logo = wait.until(EC.visibility_of_element_located(LocatorsHeader.LOGO_YANDEX))
-        driver.execute_script("arguments[0].scrollIntoView({block: 'center'});", logo)
-        driver.execute_script("arguments[0].click();", logo)
+        # Клик и ожидание новой вкладки
+        header.click_yandex_logo_and_wait_new_tab(wait)
 
-        wait.until(EC.number_of_windows_to_be(2))
-        driver.switch_to.window(driver.window_handles[-1])
-
-        # Ждём, пока URL в новой вкладке загрузится (Firefox сначала показывает about:blank)
-        wait.until(EC.url_contains("yandex.ru"))
+        # Переключение и проверка URL
+        header.switch_to_new_tab_and_verify_url(wait, "yandex.ru")
 
         assert "yandex.ru" in driver.current_url, f"Ожидался yandex.ru, но URL: {driver.current_url}"
-
-
 
     @allure.title("Клик по логотипу Scooter: возврат на главную страницу из другого раздела")
     def test_click_scooter_logo_returns_to_home(self, driver, wait):
         driver.get(Data.START_URL)
 
-        order_btn = wait.until(EC.element_to_be_clickable(LocatorsHeader.BTN_ORDER_TOP))
-        driver.execute_script("arguments[0].scrollIntoView({block: 'center'});", order_btn)
-        order_btn.click()
+        header = HeaderPage(driver)
 
-        # Убеждаемся, что ушли с главной (URL не равен START_URL)
+        # Сначала уходим с главной (кликаем «Заказать» вверху)
+        header.click_order_button_top()
+
+        # Убеждаемся, что ушли с главной
         wait.until(lambda d: d.current_url != Data.START_URL)
 
-        logo = wait.until(EC.element_to_be_clickable(LocatorsHeader.LOGO_SCOOTER))
-        driver.execute_script("arguments[0].scrollIntoView({block: 'center'});", logo)
-        logo.click()
+        # Возвращаемся по логотипу
+        header.go_to_main_via_logo()
 
-        # Ждём, пока URL станет точно равен START_URL
+        # Ждём точного совпадения URL с главной
         wait.until(EC.url_to_be(Data.START_URL))
 
         assert driver.current_url == Data.START_URL, f"Ожидалась главная страница, но URL: {driver.current_url}"
